@@ -1,64 +1,67 @@
-import tkinter as tk
-from tkinter import messagebox
+from kivy.app import App
+from kivy.uix.label import Label
+from kivy.uix.button import Button
+from kivy.uix.textinput import TextInput
+from kivy.uix.boxlayout import BoxLayout
 import sympy as sp
 
-class CalculusApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Calculus Calculator")
-        self.create_widgets()
+class CalculusApp(App):
+    def build(self):
+        layout = BoxLayout(orientation='vertical')
 
-    def create_widgets(self):
-        tk.Label(self.root, text="Expression:").grid(row=0, column=0, padx=10, pady=10)
-        self.expr_entry = tk.Entry(self.root, width=30)
-        self.expr_entry.grid(row=0, column=1, columnspan=3, padx=10, pady=10)
+        # Input for the mathematical expression
+        self.expr_input = TextInput(hint_text='Enter expression (e.g., x**2 + y**2)')
+        layout.add_widget(self.expr_input)
 
-        tk.Label(self.root, text="Variable:").grid(row=1, column=0, padx=10, pady=10)
-        self.var_entry = tk.Entry(self.root, width=15)
-        self.var_entry.grid(row=1, column=1, padx=10, pady=10)
+        # Input for the variables (comma-separated)
+        self.var_input = TextInput(hint_text='Enter variables (e.g., x, y)')
+        layout.add_widget(self.var_input)
 
-        self.operation_var = tk.StringVar(value="differentiate")
-        tk.Radiobutton(self.root, text="Differentiate", variable=self.operation_var, value="differentiate").grid(row=2, column=0, padx=10, pady=10)
-        tk.Radiobutton(self.root, text="Integrate", variable=self.operation_var, value="integrate").grid(row=2, column=1, padx=10, pady=10)
+        # Label to display the result
+        self.result_label = Label(text='Result will be displayed here')
+        layout.add_widget(self.result_label)
 
-        self.solve_button = tk.Button(self.root, text="Solve", command=self.solve_calculus)
-        self.solve_button.grid(row=2, column=2, columnspan=2, pady=10)
+        # Buttons for solving differentiation and integration
+        diff_button = Button(text='Differentiate')
+        diff_button.bind(on_press=self.differentiate)
+        layout.add_widget(diff_button)
 
-        self.result_text = tk.Text(self.root, height=10, width=60)
-        self.result_text.grid(row=3, column=0, columnspan=4, padx=10, pady=10)
+        int_button = Button(text='Integrate')
+        int_button.bind(on_press=self.integrate)
+        layout.add_widget(int_button)
 
-    def solve_calculus(self):
-        expression = self.expr_entry.get()
-        variable = self.var_entry.get()
-        operation = self.operation_var.get()
+        return layout
 
-        if not expression or not variable:
-            messagebox.showerror("Input Error", "Please enter both expression and variable.")
-            return
+    def differentiate(self, instance):
+        expression = self.expr_input.text
+        variables = self.var_input.text.split(',')
 
-        try:
-            x = sp.Symbol(variable)
-            expr = sp.sympify(expression)
-            
-            if operation == 'differentiate':
-                derivative = sp.diff(expr, x)
-                steps = f"Original expression: {expr}\nDerivative with respect to {variable}: {derivative}\n"
-                self.result_text.delete(1.0, tk.END)
-                self.result_text.insert(tk.END, steps)
+        # Convert expression and variables to sympy objects
+        expr = sp.sympify(expression)
+        vars = [sp.symbols(var.strip()) for var in variables]
 
-            elif operation == 'integrate':
-                integral = sp.integrate(expr, x)
-                steps = f"Original expression: {expr}\nIntegral with respect to {variable}: {integral}\n"
-                self.result_text.delete(1.0, tk.END)
-                self.result_text.insert(tk.END, steps)
+        # Perform differentiation for each variable
+        diff_expr = [sp.diff(expr, var) for var in vars]
 
-            else:
-                messagebox.showerror("Operation Error", "Operation not recognized. Please choose 'differentiate' or 'integrate'.")
+        # Format the result
+        result_text = " + ".join([f"d({expr})/d({var}) = {d_expr}" for var, d_expr in zip(vars, diff_expr)])
+        self.result_label.text = f'Result: {result_text}'
 
-        except Exception as e:
-            messagebox.showerror("Error", str(e))
+    def integrate(self, instance):
+        expression = self.expr_input.text
+        variables = self.var_input.text.split(',')
+
+        # Convert expression and variables to sympy objects
+        expr = sp.sympify(expression)
+        vars = [sp.symbols(var.strip()) for var in variables]
+
+        # Perform integration for each variable
+        int_expr = [sp.integrate(expr, var) for var in vars]
+
+        # Format the result
+        result_text = " + ".join([f"∫({expr}) d({var}) = {i_expr}" for var, i_expr in zip(vars, int_expr)])
+        self.result_label.text = f'Result: {result_text}'
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = CalculusApp(root)
-    root.mainloop()
+    CalculusApp().run()
+    
