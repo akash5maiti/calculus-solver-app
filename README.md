@@ -1,6 +1,6 @@
 # Calculus Solver App
 
-A Python application using Tkinter for solving calculus problems, including differentiation and integration. This app allows users to input mathematical expressions and variables, select the operation, and view the results with detailed steps.
+A Python application using kivy for solving calculus problems, including differentiation and integration. This app allows users to input mathematical expressions and variables, select the operation, and view the results with detailed steps.
 
 ## Features
 
